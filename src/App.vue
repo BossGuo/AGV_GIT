@@ -1,6 +1,8 @@
 <template>
-  <Home v-if="isLogin"></Home>
-  <Login v-else></Login>
+  <div>
+    <Home v-if="isLogin"></Home>
+    <Login v-else></Login>
+  </div>
 </template>
 
 <script setup>

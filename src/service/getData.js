@@ -303,3 +303,14 @@ export function GetAgvstatistics(agvids) {
         data
     });
 }
+
+//获取地图中显示名称的节点
+
+export function GetShowNamesNode(mapid){
+    return new Promise(resolve => {
+        let data=[1,2]
+        setTimeout(() => {
+            resolve(data);
+        }, 10);
+    })
+}

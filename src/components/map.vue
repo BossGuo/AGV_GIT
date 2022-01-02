@@ -87,13 +87,14 @@ import { useStore } from 'vuex';
 import { setStore } from '../utils/utils'
 import emitter from 'tiny-emitter/instance'
 import { ElMessage } from 'element-plus'
-import { GetMapFilesByMapId, SetTaskMode, GetMapList, SetSystemcontrol, GetSytemstatus } from '../service/getData'
+import { GetMapFilesByMapId, SetTaskMode, GetMapList, SetSystemcontrol, GetSytemstatus, GetShowNamesNode } from '../service/getData'
 const showCanvas = ref(true);
 const node_opts = ref([]);
 const node_val = ref(['']);
 const node_opts_val = ref([]);
 const store = useStore();
 let scoket_timeInterval = {};
+
 let mapData = reactive({
   sys_control: true,
   task_mode: true,
@@ -102,7 +103,7 @@ let mapData = reactive({
   scene: null,
   height: 0,
   width: 0,
-
+  showNameNodes: [],
   door_normal_pic: "door_normal",
   door_alert_pic: "door_alert",
   o_x_right_img: "o_x_right",
@@ -290,7 +291,7 @@ const initMapById = () => {
         nodeStart.setCenterLocation(loc.x, loc.y);
         nodeStart.borderRadius = 3.2;
         // nodeStart.text = start_node[0].NodeId;
-        nodeStart.text = start_node[0].Name == undefined ? start_node[0].NodeId : start_node[0].Name; // 文字
+        nodeStart.text = mapData.showNameNodes.indexOf(start_node[0].NodeId) < 0 ? '' : (start_node[0].Name == undefined ? start_node[0].NodeId : start_node[0].Name); // 文字
         nodeStart.font = '16px 微软雅黑'; // 字体
         nodeStart.id = start_node[0].NodeId;
         nodeStart.nodeid = start_node[0].NodeId;
@@ -327,7 +328,7 @@ const initMapById = () => {
         };
         nodeEnd.borderRadius = 3.2;
         // nodeEnd.text = end_node[0].NodeId;
-        nodeEnd.text = end_node[0].Name == undefined ? end_node[0].NodeId : end_node[0].Name; // 文字
+        nodeEnd.text = mapData.showNameNodes.indexOf(end_node[0].NodeId) < 0 ? '' : (end_node[0].Name == undefined ? end_node[0].NodeId : end_node[0].Name); // 文字
         nodeEnd.font = '16px 微软雅黑'; // 字体
         nodeEnd.id = end_node[0].NodeId;
         nodeEnd._x = end_node[0].X;//初始坐标
@@ -682,7 +683,7 @@ const GetRealTime_Maps_Data_Data = msg => {
       agvNode.data = el;
       agvNode.textPosition = 'Bottom_Center';
       agvNode.dragable = false;
-      if (el.AgvType == 1) {
+      if (el.AgvType == 'Fork') {
         if (el.Alarms !== "0") {//如果报警码不等于0或者状态为'不可用'
           agvNode.setImage(mapData.ccsred)//红色
         }
@@ -696,7 +697,7 @@ const GetRealTime_Maps_Data_Data = msg => {
           agvNode.setImage(mapData.ccsblue)//蓝色
         }
         //叉车式AGV
-      } else if (el.AgvType == 2) {
+      } else if (el.AgvType == 'Trac') {
         //牵引式AGV
         if (el.Alarms !== "0") {//如果报警码不等于0或者状态为'不可用'
           agvNode.setImage(mapData.qysred)//红色
@@ -710,7 +711,7 @@ const GetRealTime_Maps_Data_Data = msg => {
         else {//其余
           agvNode.setImage(mapData.qysblue)//蓝色
         }
-      } else if (el.AgvType == 3) {
+      } else if (el.AgvType == 'Lift') {
         //潜伏举升式AGV
         if (el.Alarms !== "0") {//如果报警码不等于0或者状态为'不可用'
           agvNode.setImage(mapData.qfjssred)//红色
@@ -724,7 +725,7 @@ const GetRealTime_Maps_Data_Data = msg => {
         else {//其余
           agvNode.setImage(mapData.qfjssblue)//蓝色
         }
-      } else if (el.AgvType == 4) {
+      } else if (el.AgvType == 'Roller') {
         //滚筒AGV
         if (el.Alarms !== "0") {//如果报警码不等于0或者状态为'不可用'
           agvNode.setImage(mapData.gtsred)//红色
@@ -738,7 +739,7 @@ const GetRealTime_Maps_Data_Data = msg => {
         else {//其余
           agvNode.setImage(mapData.gtsblue)//蓝色
         }
-      } else if (el.AgvType == 5) {
+      } else if (el.AgvType == 'LaserAllRoundJackAgv') {
         //全向举升车
         if (el.Alarms !== "0") {//如果报警码不等于0或者状态为'不可用'
           agvNode.setImage(mapData.qxjscred)//红色
@@ -752,7 +753,7 @@ const GetRealTime_Maps_Data_Data = msg => {
         else {//其余
           agvNode.setImage(mapData.qxjscblue)//蓝色
         }
-      } else if (el.AgvType == 6) {
+      } else if (el.AgvType == 'LaserAllRoundConveyorAgv') {
         //全向滚筒车
         if (el.Alarms !== "0") {//如果报警码不等于0或者状态为'不可用'
           agvNode.setImage(mapData.qxjscred)//红色
@@ -991,7 +992,6 @@ const getSytemstatus = () => {
   })
 }
 onMounted(() => {
-
   mapData.ccsred = GetAgvImg("ccsred");
   mapData.ccsgreen = GetAgvImg("ccsgreen");
   mapData.ccsblue = GetAgvImg("ccsblue");
@@ -1022,6 +1022,10 @@ onMounted(() => {
   mapData.door_alert_pic = GetImg("door_alert");
   mapData.height = document.getElementById('mapcontainer').clientHeight;
   mapData.width = document.getElementById('mapcontainer').clientWidth;
+
+  GetShowNamesNode(1).then(res => {
+    mapData.showNameNodes = res
+  })
   emitter.on('change_Map_Event_Alarm', val => {
     if (val.MapId != mapData.mapid) {
       mapData.mapid = val.MapId;
