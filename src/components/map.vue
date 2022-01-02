@@ -28,8 +28,8 @@
     <div class="ment_item" style="cursor:default;">
       <el-col :span="10">节点查询:</el-col>
       <el-col :span="10" style="margin-left:13px;">
-        <select v-model="node_val" style="width:100px;height:25px;outline:none;" placeholder="查询" size="mini" clearable :clear="node_opts_val=node_opts" filterable
-          :filter-method="filter_Node_Method" @change="find_node" :popper-append-to-body="false">
+        <select v-model="node_val" style="width:100px;height:25px;outline:none;" placeholder="查询" size="mini" clearable :clear="node_opts_val=node_opts" filterable :filter-method="filter_Node_Method"
+          @change="find_node" :popper-append-to-body="false">
           <option v-for="(item,index) in node_opts_val" :key="index" :value="item.node_id" :label="item.node_name"></option>
         </select>
       </el-col>
@@ -102,10 +102,7 @@ let mapData = reactive({
   scene: null,
   height: 0,
   width: 0,
-  agvpic: "agv",
-  agvpic_error: "agv_error",
-  agvpic_charge: "agv_charge",
-  agvpic_traffic: "agv_traffic",
+
   door_normal_pic: "door_normal",
   door_alert_pic: "door_alert",
   o_x_right_img: "o_x_right",
@@ -116,6 +113,28 @@ let mapData = reactive({
   o_y_right_img: "o_y_right",
   o_y_bottom_img: "o_y_bottom",
   o_y_left_img: "o_y_left",
+
+  ccsred: "ccsred",
+  ccsgreen: "ccsgreen",
+  ccsblue: "ccsblue",
+  ccstraffic: "ccstraffic",
+  qysagv_traffic: "qysagv_traffic",
+  qysred: "qysred",
+  qysgreen: 'qysgreen',
+  qysblue: 'qysblue',
+  qfjssagv_traffic: "qfjssagv_traffic",
+  qfjssred: "qfjssred",
+  qfjssgreen: "qfjssgreen",
+  qfjssblue: "qfjssblue",
+  gtsagv_traffic: 'gtsagv_traffic',
+  gtsred: 'gtsred',
+  gtsgreen: 'gtsgreen',
+  gtsblue: 'gtsblue',
+  qxjsc_traffic: 'qxjsc_traffic',
+  qxjscred: 'qxjscred',
+  qxjscgreen: 'qxjscgreen',
+  qxjscblue: 'qxjscblue',
+
   rocate_num: 0,
   ActiveAgvId: '',
   isShowBubble: false,
@@ -142,6 +161,11 @@ let mapData = reactive({
 const GetImg = (name) => {
   const path = '../assets/images/' + name + '.png';
   const modules = import.meta.globEager('../assets/images/*.png');
+  return modules[path].default;
+}
+const GetAgvImg = (name) => {
+  const path = '../assets/images/AGV/' + name + '.png';
+  const modules = import.meta.globEager('../assets/images/AGV/*.png');
   return modules[path].default;
 }
 const find_node = () => {
@@ -605,6 +629,7 @@ const initScoket = (type) => {
     }
   }
 }
+
 const GetRealTime_Maps_Data_Data = msg => {
   let node = JSON.parse(msg.data);
   if (node.Heart != undefined) {//心跳数据
@@ -652,21 +677,95 @@ const GetRealTime_Maps_Data_Data = msg => {
       agvNode.type = 'agv';
       agvNode.deviceid = el.AgvId;
       agvNode.text = el.AgvId;
+      // agvNode.text = el.AgvId;
       agvNode.font = '20px 微软雅黑';
       agvNode.data = el;
-      agvNode.textPosition = 'Middle_Center';
+      agvNode.textPosition = 'Bottom_Center';
       agvNode.dragable = false;
-      if (el.Alarms !== "0") {//如果报警码不等于0或者状态为'不可用'
-        agvNode.setImage(mapData.agvpic_error)//红色
-      }
-      else if (el.TrafficControl === 1) {//交通管制
-        agvNode.setImage(mapData.agvpic_traffic)//绿色
-      }
-      else if (el.IsCharging === 1) {//充电
-        agvNode.setImage(mapData.agvpic_charge)//绿色
-      }
-      else {//其余
-        agvNode.setImage(mapData.agvpic)//蓝色
+      if (el.AgvType == 1) {
+        if (el.Alarms !== "0") {//如果报警码不等于0或者状态为'不可用'
+          agvNode.setImage(mapData.ccsred)//红色
+        }
+        else if (el.TrafficControl === 1) {//交通管制
+          agvNode.setImage(mapData.ccstraffic)//绿色
+        }
+        else if (el.IsCharging === 1) {//充电
+          agvNode.setImage(mapData.ccsgreen)//绿色
+        }
+        else {//其余
+          agvNode.setImage(mapData.ccsblue)//蓝色
+        }
+        //叉车式AGV
+      } else if (el.AgvType == 2) {
+        //牵引式AGV
+        if (el.Alarms !== "0") {//如果报警码不等于0或者状态为'不可用'
+          agvNode.setImage(mapData.qysred)//红色
+        }
+        else if (el.TrafficControl === 1) {//交通管制
+          agvNode.setImage(mapData.qysagv_traffic)//绿色
+        }
+        else if (el.IsCharging === 1) {//充电
+          agvNode.setImage(mapData.qysgreen)//绿色
+        }
+        else {//其余
+          agvNode.setImage(mapData.qysblue)//蓝色
+        }
+      } else if (el.AgvType == 3) {
+        //潜伏举升式AGV
+        if (el.Alarms !== "0") {//如果报警码不等于0或者状态为'不可用'
+          agvNode.setImage(mapData.qfjssred)//红色
+        }
+        else if (el.TrafficControl === 1) {//交通管制
+          agvNode.setImage(mapData.qfjssagv_traffic)//绿色
+        }
+        else if (el.IsCharging === 1) {//充电
+          agvNode.setImage(mapData.qfjssgreenj)//绿色
+        }
+        else {//其余
+          agvNode.setImage(mapData.qfjssblue)//蓝色
+        }
+      } else if (el.AgvType == 4) {
+        //滚筒AGV
+        if (el.Alarms !== "0") {//如果报警码不等于0或者状态为'不可用'
+          agvNode.setImage(mapData.gtsred)//红色
+        }
+        else if (el.TrafficControl === 1) {//交通管制
+          agvNode.setImage(mapData.gtsagv_traffic)//绿色
+        }
+        else if (el.IsCharging === 1) {//充电
+          agvNode.setImage(mapData.gtsgreen)//绿色
+        }
+        else {//其余
+          agvNode.setImage(mapData.gtsblue)//蓝色
+        }
+      } else if (el.AgvType == 5) {
+        //全向举升车
+        if (el.Alarms !== "0") {//如果报警码不等于0或者状态为'不可用'
+          agvNode.setImage(mapData.qxjscred)//红色
+        }
+        else if (el.TrafficControl === 1) {//交通管制
+          agvNode.setImage(mapData.qxjsc_traffic)//绿色
+        }
+        else if (el.IsCharging === 1) {//充电
+          agvNode.setImage(mapData.qxjscgreen)//绿色
+        }
+        else {//其余
+          agvNode.setImage(mapData.qxjscblue)//蓝色
+        }
+      } else if (el.AgvType == 6) {
+        //全向滚筒车
+        if (el.Alarms !== "0") {//如果报警码不等于0或者状态为'不可用'
+          agvNode.setImage(mapData.qxjscred)//红色
+        }
+        else if (el.TrafficControl === 1) {//交通管制
+          agvNode.setImage(mapData.qxjsc_traffic)//绿色
+        }
+        else if (el.IsCharging === 1) {//充电
+          agvNode.setImage(mapData.qxjscgreen)//绿色
+        }
+        else {//其余
+          agvNode.setImage(mapData.qxjscblue)//蓝色
+        }
       }
       agvNode.setSize(el.Length / 10, el.Width / 10);
       agvNode.borderRadius = 1;
@@ -892,10 +991,33 @@ const getSytemstatus = () => {
   })
 }
 onMounted(() => {
-  mapData.agvpic = GetImg("agv");
-  mapData.agvpic_error = GetImg("agv_error");
-  mapData.agvpic_charge = GetImg("agv_charge");
-  mapData.agvpic_traffic = GetImg("agv_traffic");
+
+  mapData.ccsred = GetAgvImg("ccsred");
+  mapData.ccsgreen = GetAgvImg("ccsgreen");
+  mapData.ccsblue = GetAgvImg("ccsblue");
+  mapData.ccstraffic = GetAgvImg('ccsagv_traffic');
+
+  mapData.qysagv_traffic = GetAgvImg("qysagv_traffic")
+  mapData.qysred = GetAgvImg("qysred");
+  mapData.qysgreen = GetAgvImg("qysgreen");
+  mapData.qysblue = GetAgvImg("qysblue");
+
+  mapData.qfjssagv_traffic = GetAgvImg("qfjssagv_traffic");
+  mapData.qfjssred = GetAgvImg("qfjssred");
+  mapData.qfjssgreen = GetAgvImg("qfjssgreen");
+  mapData.qfjssblue = GetAgvImg("qfjssblue");
+
+
+  mapData.gtsagv_traffic = GetAgvImg("gtsagv_traffic");
+  mapData.gtsred = GetAgvImg("gtsred");
+  mapData.gtsgreen = GetAgvImg("gtsgreen");
+  mapData.gtsblue = GetAgvImg("gtsblue");
+
+  mapData.qxjsc_traffic = GetAgvImg("qxjsc_traffic");
+  mapData.qxjscred = GetAgvImg("qxjscred");
+  mapData.qxjscgreen = GetAgvImg("qxjscgreen");
+  mapData.qxjscblue = GetAgvImg("qxjscblue");
+
   mapData.door_normal_pic = GetImg("door_normal");
   mapData.door_alert_pic = GetImg("door_alert");
   mapData.height = document.getElementById('mapcontainer').clientHeight;
